@@ -1,9 +1,5 @@
-Environment
------------
+## Environment
 - Tested on Ubuntun 14.04 and 16.04
-
-Dependencies
-------------
 
 ## Installation
 
