@@ -15,6 +15,7 @@ $ ./setup.sh
 $ virtualenv venv
 $ source venv/bin/activate
 $ python setup.py install
+~~~~
 
 ## Run hybrid fuzzing with AFL
 
