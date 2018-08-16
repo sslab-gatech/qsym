@@ -1,0 +1,5 @@
+(declare-const x (_ BitVec 32))
+(declare-const y (_ BitVec 32))
+(assert (= (bvmul x y) #xdeadbeef))
+(check-sat)
+(get-model)

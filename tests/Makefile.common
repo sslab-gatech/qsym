@@ -1,0 +1,12 @@
+TARGET = main
+SRCS		= $(wildcard *.c)
+OBJS 		= $(SRCS:.c=.o)
+CFLAGS += -std=c99 -O0 -I$(TOP)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(OBJS) $(TARGET) $(BC)

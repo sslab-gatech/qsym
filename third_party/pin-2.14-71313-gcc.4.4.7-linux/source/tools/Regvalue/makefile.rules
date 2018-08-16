@@ -1,0 +1,311 @@
+##############################################################
+#
+# This file includes all the test targets as well as all the
+# non-default build rules and test recipes.
+#
+##############################################################
+
+
+##############################################################
+#
+# Test targets
+#
+##############################################################
+
+###### Place all generic definitions here ######
+
+# This defines tests which run tools of the same name.  This is simply for convenience to avoid
+# defining the test name twice (once in TOOL_ROOTS and again in TEST_ROOTS).
+# Tests defined here should not be defined in TOOL_ROOTS and TEST_ROOTS.
+TEST_TOOL_ROOTS := context_regvalue change_context_regvalue emu_context_regvalue iarg_reg_reference iarg_reg_reference_flags
+
+# This defines the tests to be run that were not already defined in TEST_TOOL_ROOTS.
+TEST_ROOTS := const_context_regvalue partial_context_regvalue change_partial_context_regvalue iarg_reg_const_reference \
+              xstateComponentX87_context xstateComponentX87_partial \
+              xstateComponentSSE_context xstateComponentSSE_partial xstateComponentSSE_reference \
+              xstateComponentAVX_context xstateComponentAVX_partial xstateComponentAVX_reference \
+              xsave_memorywrite_ea xsave_memorywrite_size
+
+# This defines a list of tests that should run in the "short" sanity. Tests in this list must also
+# appear either in the TEST_TOOL_ROOTS or the TEST_ROOTS list.
+# If the entire directory should be tested in sanity, assign TEST_TOOL_ROOTS and TEST_ROOTS to the
+# SANITY_SUBSET variable in the tests section below (see example in makefile.rules.tmpl).
+SANITY_SUBSET := iarg_reg_reference_flags
+
+# This defines the tools which will be run during the the tests, and were not already defined in
+# TEST_TOOL_ROOTS.
+TOOL_ROOTS := checkXStateBV_tool xsave_iarg_mem
+
+# This defines the static analysis tools which will be run during the the tests. They should not
+# be defined in TEST_TOOL_ROOTS. If a test with the same name exists, it should be defined in
+# TEST_ROOTS.
+# Note: Static analysis tools are in fact executables linked with the Pin Static Analysis Library.
+# This library provides a subset of the Pin APIs which allows the tool to perform static analysis
+# of an application or dll. Pin itself is not used when this tool runs.
+SA_TOOL_ROOTS :=
+
+# This defines all the applications that will be run during the tests.
+APP_ROOTS := regvalue_app checkXStateBV_app xsave_iarg_mem_app print_flags
+
+# This defines any additional object files that need to be compiled.
+OBJECT_ROOTS := regvalues changeRegs regvalue_test_utils context_utils register_modification_utils doXsave print_flags_asm
+
+# This defines any additional dlls (shared objects), other than the pintools, that need to be compiled.
+DLL_ROOTS :=
+
+# This defines any static libraries (archives), that need to be built.
+LIB_ROOTS :=
+
+###### Handle exceptions here ######
+
+# First, see if the specified targets require avx support. "clean" for example does not,
+# so there is no need for making that check.
+ifeq ($(MAKECMDGOALS),) # If no target was specified, "all" is assumed.
+    AVX_DEPENDENTS := all
+else
+    AVX_DEPENDENTS := $(filter test sanity install all objects libs dlls apps tools %.test %.wrap $(OBJDIR)%, \
+                               $(MAKECMDGOALS))
+endif
+
+# Now, if there are avx-dependent targets, make sure that the avx_check program exists.
+ifneq ($(AVX_DEPENDENTS),)
+    ifeq ($(wildcard $(CHECKAVX)),)
+        $(error Unable to proceed. Run "make avxcheck", then try again)
+    else
+        ifeq ($(CROSS_DEVICE_TEST),1)
+            MACHINE_SUPPORTS_AVX_INSTRUCTIONS := $(call CHECKREMOTE,$(CHECKAVX))
+        else
+            MACHINE_SUPPORTS_AVX_INSTRUCTIONS := $(shell $(CHECKAVX) | $(GREP) Yes)
+        endif
+        ifneq ($(MACHINE_SUPPORTS_AVX_INSTRUCTIONS),Yes)
+            TEST_ROOTS := $(filter-out xstateComponentX87_context xstateComponentX87_partial \
+                                       xstateComponentSSE_context xstateComponentSSE_partial xstateComponentSSE_reference \
+                                       xstateComponentAVX_context xstateComponentAVX_partial xstateComponentAVX_reference \
+                                       xsave_memorywrite_ea xsave_memorywrite_size, \
+                                       $(TEST_ROOTS))
+            TOOL_ROOTS := $(filter-out checkXStateBV_tool xsave_iarg_mem, $(TOOL_ROOTS))
+            APP_ROOTS := $(filter-out checkXStateBV_app xsave_iarg_mem_app, $(APP_ROOTS))
+            OBJECT_ROOTS := $(filter-out doXsave, $(OBJECT_ROOTS))
+        endif
+    endif
+endif
+
+# Handle exceptions
+
+# See mantis 3225
+ifeq ($(TARGET_OS),android)
+    TEST_TOOL_ROOTS :=
+    TEST_ROOTS :=
+    SANITY_SUBSET :=
+    TOOL_ROOTS :=
+    SA_TOOL_ROOTS :=
+    APP_ROOTS :=
+    OBJECT_ROOTS :=
+    DLL_ROOTS :=
+    LIB_ROOTS :=
+endif
+
+
+##############################################################
+#
+# Test recipes
+#
+##############################################################
+
+###### Finalize sanity here ######
+
+SANITY_SUBSET := $(TEST_TOOL_ROOTS) $(TEST_ROOTS)
+
+# This section contains recipes for tests other than the default.
+# See makefile.default.rules for the default test rules.
+# All tests in this section should adhere to the naming convention: <testname>.test
+
+context_regvalue.test: $(OBJDIR)context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+const_context_regvalue.test: $(OBJDIR)context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -testcontext const -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+partial_context_regvalue.test: $(OBJDIR)context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -testcontext partial -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+change_context_regvalue.test: $(OBJDIR)change_context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -test_partial 0 -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+change_partial_context_regvalue.test: $(OBJDIR)change_context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -testcontext partial -test_partial 0 -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+emu_context_regvalue.test: $(OBJDIR)emu_context_regvalue$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -test_partial 0 -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+iarg_reg_reference.test: $(OBJDIR)iarg_reg_reference$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -test_st 0 -test_partial 0 -o $(OBJDIR)$(@:%.test=%.out) -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+iarg_reg_const_reference.test: $(OBJDIR)iarg_reg_reference$(PINTOOL_SUFFIX) $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(PIN) -t $< -testreference const -test_st 0 -test_partial 0 -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)regvalue_app$(EXE_SUFFIX)
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentX87_context.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass x87 -method context -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) x87
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentX87_partial.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass x87 -method partial -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) x87
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentSSE_context.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass SSE -method context -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) SSE
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentSSE_partial.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass SSE -method partial -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) SSE
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentSSE_reference.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass SSE -method reference -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) SSE
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentAVX_context.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass AVX -method context -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) AVX
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentAVX_partial.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass AVX -method partial -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) AVX
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xstateComponentAVX_reference.test: $(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX) $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX)
+	$(PIN) -t $< -stateClass AVX -method reference -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)checkXStateBV_app$(EXE_SUFFIX) AVX
+	$(RM) $(OBJDIR)$(@:%.test=%.out)
+
+xsave_memorywrite_ea.test: $(OBJDIR)xsave_iarg_mem$(PINTOOL_SUFFIX) $(OBJDIR)xsave_iarg_mem_app$(EXE_SUFFIX)
+	$(RM) -f $(OBJDIR)$(@:%.test=%.out)
+	$(PIN) -t $(OBJDIR)xsave_iarg_mem$(PINTOOL_SUFFIX) \
+	  -o $(OBJDIR)$(@:%.test=%.out) -c 0 -- $(OBJDIR)xsave_iarg_mem_app$(EXE_SUFFIX) > $(OBJDIR)xsave_memorywrite_ea_app.out
+	$(PYCOMPARE) -p $(OBJDIR)xsave_memorywrite_ea_app.out -c $(OBJDIR)$(@:%.test=%.out)
+	$(RM) $(OBJDIR)$(@:%.test=%.out) $(OBJDIR)xsave_memorywrite_ea_app.out
+
+xsave_memorywrite_size.test: $(OBJDIR)xsave_iarg_mem$(PINTOOL_SUFFIX) $(OBJDIR)xsave_iarg_mem_app$(EXE_SUFFIX)
+	$(RM) -f $(OBJDIR)$(@:%.test=%.out)
+	! ( $(PIN) -error_file $(OBJDIR)xsave_memorywrite_size.err -t $(OBJDIR)xsave_iarg_mem$(PINTOOL_SUFFIX) \
+	  -o $(OBJDIR)$(@:%.test=%.out) -c 1 -- $(OBJDIR)xsave_iarg_mem_app$(EXE_SUFFIX) > $(OBJDIR)xsave_memorywrite_size_app.out )
+	$(QGREP) "Cannot use IARG_MEMORYWRITE_SIZE on non-standard memory access of instruction at .* xsave" $(OBJDIR)xsave_memorywrite_size.err
+	$(RM) $(OBJDIR)$(@:%.test=%.out) $(OBJDIR)xsave_memorywrite_size_app.out $(OBJDIR)xsave_memorywrite_size.err
+
+iarg_reg_reference_flags.test: $(OBJDIR)iarg_reg_reference_flags$(PINTOOL_SUFFIX) $(OBJDIR)print_flags$(EXE_SUFFIX)
+	$(RM) -f $(OBJDIR)$(@:%.test=%.out)
+	$(PIN) -t $(OBJDIR)iarg_reg_reference_flags$(PINTOOL_SUFFIX) -o $(OBJDIR)$(@:%.test=%.out) -testreference const \
+	  -- $(OBJDIR)print_flags$(EXE_SUFFIX) > $(OBJDIR)print_flags.out
+	$(QGREP) "Flags: 207" $(OBJDIR)$(@:%.test=%.out)
+	$(QGREP) "Flags: 207" $(OBJDIR)print_flags.out
+	$(PIN) -t $(OBJDIR)iarg_reg_reference_flags$(PINTOOL_SUFFIX) -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)print_flags$(EXE_SUFFIX) > $(OBJDIR)print_flags.out
+	$(QGREP) "Flags: 207" $(OBJDIR)$(@:%.test=%.out)
+	$(QGREP) "Flags: ed2" $(OBJDIR)print_flags.out
+	# Now check with -use_sahf 0
+	$(PIN) -xyzzy -use_sahf 0 -t $(OBJDIR)iarg_reg_reference_flags$(PINTOOL_SUFFIX) -o $(OBJDIR)$(@:%.test=%.out) \
+	  -testreference const -- $(OBJDIR)print_flags$(EXE_SUFFIX) > $(OBJDIR)print_flags.out
+	$(QGREP) "Flags: 207" $(OBJDIR)$(@:%.test=%.out)
+	$(QGREP) "Flags: 207" $(OBJDIR)print_flags.out
+	$(PIN) -xyzzy -use_sahf 0 -t $(OBJDIR)iarg_reg_reference_flags$(PINTOOL_SUFFIX) -o $(OBJDIR)$(@:%.test=%.out) \
+	  -- $(OBJDIR)print_flags$(EXE_SUFFIX) > $(OBJDIR)print_flags.out
+	$(QGREP) "Flags: 207" $(OBJDIR)$(@:%.test=%.out)
+	$(QGREP) "Flags: ed2" $(OBJDIR)print_flags.out
+	
+
+
+##############################################################
+#
+# Build rules
+#
+##############################################################
+
+# This section contains the build rules for all binaries that have special build rules.
+# See makefile.default.rules for the default build rules.
+
+ifeq ($(MACHINE_SUPPORTS_AVX_INSTRUCTIONS),Yes)
+    ifeq ($(TARGET_OS),windows)
+        DEFINE_USING_AVX := /DCONTEXT_USING_AVX
+    else
+        DEFINE_USING_AVX := -DCONTEXT_USING_AVX
+    endif
+endif
+
+ifeq ($(TARGET_OS),windows)
+    REGVALUE_APP_EXPORTS := /EXPORT:ChangeRegs /EXPORT:ExecuteAt /EXPORT:SaveRegsToMem
+    CHECKXSTATEBV_APP_EXPORTS := /EXPORT:ChangeRegisterValue /EXPORT:ExecuteAt
+endif
+
+###### Special tools' build rules ######
+
+$(OBJDIR)context_regvalue$(PINTOOL_SUFFIX): $(OBJDIR)context_regvalue$(OBJ_SUFFIX) $(OBJDIR)regvalues$(OBJ_SUFFIX) $(OBJDIR)regvalue_test_utils$(OBJ_SUFFIX) $(OBJDIR)context_utils$(OBJ_SUFFIX) $(REGVALLIB)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
+$(OBJDIR)change_context_regvalue$(PINTOOL_SUFFIX): $(OBJDIR)change_context_regvalue$(OBJ_SUFFIX) $(OBJDIR)regvalues$(OBJ_SUFFIX) $(OBJDIR)regvalue_test_utils$(OBJ_SUFFIX) $(OBJDIR)context_utils$(OBJ_SUFFIX) $(OBJDIR)register_modification_utils$(OBJ_SUFFIX) $(REGVALLIB)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
+$(OBJDIR)emu_context_regvalue$(PINTOOL_SUFFIX): $(OBJDIR)emu_context_regvalue$(OBJ_SUFFIX) $(OBJDIR)regvalues$(OBJ_SUFFIX) $(OBJDIR)regvalue_test_utils$(OBJ_SUFFIX) $(OBJDIR)context_utils$(OBJ_SUFFIX) $(REGVALLIB)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
+$(OBJDIR)iarg_reg_reference$(PINTOOL_SUFFIX): $(OBJDIR)iarg_reg_reference$(OBJ_SUFFIX) $(OBJDIR)regvalues$(OBJ_SUFFIX) $(OBJDIR)regvalue_test_utils$(OBJ_SUFFIX) $(OBJDIR)context_utils$(OBJ_SUFFIX) $(OBJDIR)register_modification_utils$(OBJ_SUFFIX) $(REGVALLIB)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
+$(OBJDIR)checkXStateBV_tool$(PINTOOL_SUFFIX): $(OBJDIR)checkXStateBV_tool$(OBJ_SUFFIX) $(OBJDIR)xstateBVUtils$(OBJ_SUFFIX) $(REGVALLIB)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
+###### Special applications' build rules ######
+
+$(OBJDIR)regvalue_app$(EXE_SUFFIX): regvalue_app.cpp $(OBJDIR)changeRegs$(OBJ_SUFFIX) $(OBJDIR)regvalues$(OBJ_SUFFIX) regvalues.h
+	$(APP_CXX) $(APP_CXXFLAGS_NOOPT) $(COMP_EXE)$@ $(^:%.h=) $(APP_LDFLAGS_NOOPT) $(REGVALUE_APP_EXPORTS) $(APP_LIBS) \
+	  $(CXX_LPATHS) $(CXX_LIBS)
+
+# The xstateBVUtils is used by both the tool and the application. On Windows, it is compiled with /MT, but the application
+# is compiled with /MD and this mismatch causes a link error. So instead of linking the xstateBVUtils object, the source is
+# used directly when building the application.
+$(OBJDIR)checkXStateBV_app$(EXE_SUFFIX): checkXStateBV_app.cpp xstateBVUtils.cpp xstateBVUtils.h $(OBJDIR)doXsave$(OBJ_SUFFIX)
+	$(APP_CXX) $(APP_CXXFLAGS_NOOPT) $(COMP_EXE)$@ $(^:%.h=) $(APP_LDFLAGS_NOOPT) $(CHECKXSTATEBV_APP_EXPORTS) $(APP_LIBS) \
+	  $(CXX_LPATHS) $(CXX_LIBS)
+
+$(OBJDIR)xsave_iarg_mem_app$(EXE_SUFFIX): xsave_iarg_mem_app.cpp $(OBJDIR)doXsave$(OBJ_SUFFIX)
+	$(APP_CXX) $(APP_CXXFLAGS_NOOPT) $(COMP_EXE)$@ $^ $(APP_LDFLAGS_NOOPT) $(APP_LIBS) $(CXX_LPATHS) $(CXX_LIBS)
+
+$(OBJDIR)print_flags$(EXE_SUFFIX): print_flags.c $(OBJDIR)print_flags_asm$(OBJ_SUFFIX)
+	$(APP_CC) $(APP_CXXFLAGS_NOOPT) $(COMP_EXE)$@ $^ $(APP_LDFLAGS_NOOPT) $(APP_LIBS)
+
+###### Special objects' build rules ######
+
+$(OBJDIR)regvalues$(OBJ_SUFFIX): regvalues.h
+
+$(OBJDIR)regvalue_test_utils$(OBJ_SUFFIX): regvalue_test_utils.h regvalues.h
+
+$(OBJDIR)context_utils$(OBJ_SUFFIX): context_utils.h
+
+$(OBJDIR)register_modification_utils$(OBJ_SUFFIX): register_modification_utils.h
+
+$(OBJDIR)context_regvalue$(OBJ_SUFFIX): context_utils.h
+
+$(OBJDIR)change_context_regvalue$(OBJ_SUFFIX): context_utils.h register_modification_utils.h
+
+$(OBJDIR)emu_context_regvalue$(OBJ_SUFFIX): context_utils.h
+
+$(OBJDIR)iarg_reg_reference$(OBJ_SUFFIX): register_modification_utils.h
+
+$(OBJDIR)checkXStateBV_tool$(OBJ_SUFFIX): xstateBVUtils.h
+
+$(OBJDIR)changeRegs$(OBJ_SUFFIX): changeRegs_$(TARGET)$(ASM_SUFFIX)
+	$(ASMBLR) $(ASM_FLAGS) $(DEFINE_USING_AVX) $(COMP_OBJ)$@ $<

@@ -1,0 +1,6 @@
+main
+*.o
+
+# results from qsym
+stat
+00000*

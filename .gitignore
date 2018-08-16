@@ -1,0 +1,17 @@
+# pin
+pin.log
+pintool.log
+
+# vim
+*.swp
+*.swo
+
+# setup.py
+*.egg-info
+/dist
+/build
+/venv
+/.cache
+
+# pytest
+.pytest_cache

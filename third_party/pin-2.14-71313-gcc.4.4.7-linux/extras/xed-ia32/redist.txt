@@ -1,0 +1,12 @@
+This file is redist.txt.
+
+The following files, if present, are allowed to be redistributed via
+compilation, static linking or dynamic linking, subject to the terms
+of the license found in the LICENSE.txt file:
+
+libxed.a
+libxed.lib 
+libxed.so 
+libxed.dll
+libxed.dylib
+

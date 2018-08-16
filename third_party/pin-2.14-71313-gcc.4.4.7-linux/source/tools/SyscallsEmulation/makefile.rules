@@ -1,0 +1,160 @@
+##############################################################
+#
+# This file includes all the test targets as well as all the
+# non-default build rules and test recipes.
+#
+##############################################################
+
+
+##############################################################
+#
+# Test targets
+#
+##############################################################
+
+###### Place all generic definitions here ######
+
+# This defines tests which run tools of the same name.  This is simply for convenience to avoid
+# defining the test name twice (once in TOOL_ROOTS and again in TEST_ROOTS).
+# Tests defined here should not be defined in TOOL_ROOTS and TEST_ROOTS.
+TEST_TOOL_ROOTS :=
+
+# This defines the tests to be run that were not already defined in TEST_TOOL_ROOTS.
+TEST_ROOTS :=
+
+# This defines a list of tests that should run in the "short" sanity. Tests in this list must also
+# appear either in the TEST_TOOL_ROOTS or the TEST_ROOTS list.
+# If the entire directory should be tested in sanity, assign TEST_TOOL_ROOTS and TEST_ROOTS to the
+# SANITY_SUBSET variable in the tests section below (see example in makefile.rules.tmpl).
+SANITY_SUBSET :=
+
+# This defines the tools which will be run during the the tests, and were not already defined in
+# TEST_TOOL_ROOTS.
+TOOL_ROOTS :=
+
+# This defines the static analysis tools which will be run during the the tests. They should not
+# be defined in TEST_TOOL_ROOTS. If a test with the same name exists, it should be defined in
+# TEST_ROOTS.
+# Note: Static analysis tools are in fact executables linked with the Pin Static Analysis Library.
+# This library provides a subset of the Pin APIs which allows the tool to perform static analysis
+# of an application or dll. Pin itself is not used when this tool runs.
+SA_TOOL_ROOTS := 
+
+# This defines all the applications that will be run during the tests.
+APP_ROOTS :=
+
+# This defines any additional object files that need to be compiled.
+OBJECT_ROOTS :=
+
+# This defines any additional dlls (shared objects), other than the pintools, that need to be compiled.
+DLL_ROOTS :=
+
+# This defines any static libraries (archives), that need to be built.
+LIB_ROOTS :=
+
+###### Place probe mode tests here ######
+
+ifeq ($(PROBE),1)
+    TEST_ROOTS += system_syscall_client_lock  popen_syscall_client_lock \
+                  clone_syscall_different_process_client_lock clone_syscall_same_process_client_lock        
+    TOOL_ROOTS += syscalls_and_locks_tool
+    APP_ROOTS += syscalls_and_locks_app
+endif
+
+###### Place OS-specific definitions here ######
+
+# Linux
+ifeq ($(TARGET_OS),linux)
+    TEST_ROOTS += ppollEmulationSuccessful ppollEmulationSignalInterrupt ppollEmulationTimeOut
+    APP_ROOTS += ppollEmulation_app
+endif
+
+###### Handle exceptions here ######
+
+# If some tests need to be disabled, do this here
+
+# On Linux, check whether the g++ version is smaller than 4.5. If so, we need to use the
+# runtime libraries supplied with the kit.
+# The ppoll() system call was added to Linux in kernel 2.6.16. The ppoll() library call was added in glibc 2.4
+ifeq ($(TARGET_OS),linux)
+    PPOLL_NOT_SUPPORTED := $(shell $(TOOLS_ROOT)/Utils/testLibcVersion 2.4)
+    ifeq ($(PPOLL_NOT_SUPPORTED),0)
+        PPOLL_NOT_SUPPORTED := $(shell $(TOOLS_ROOT)/Utils/testReleaseVersion 2.6.16)
+    endif
+    ifeq ($(PPOLL_NOT_SUPPORTED),1)
+        TEST_ROOTS := $(TEST_ROOTS:ppollEmulationSuccessful=)
+        TEST_ROOTS := $(TEST_ROOTS:ppollEmulationSignalInterrupt=)
+        TEST_ROOTS := $(TEST_ROOTS:ppollEmulationTimeOut=)
+        APP_ROOTS  := $(APP_ROOTS:ppollEmulation_app=)
+    endif
+endif
+
+# These tests only relevant for windows for now since they test the additions
+# to the lock acquirement algorithm, that are only implemented for Linux and Mac
+ifeq ($(TARGET),windows)
+    TEST_ROOTS := $(filter-out  system_syscall_client_lock  popen_syscall_client_lock \
+                  clone_syscall_different_process_client_lock clone_syscall_same_process_pin_client_lock, $(TEST_ROOTS))
+    TOOL_ROOTS := $(filter-out syscalls_and_locks_tool, $(TOOL_ROOTS))
+    APP_ROOTS := $(filter-out syscalls_and_locks_app, $(APP_ROOTS)
+endif
+
+
+##############################################################
+#
+# Test recipes
+#
+##############################################################
+
+# This section contains recipes for tests other than the default.
+# See makefile.default.rules for the default test rules.
+# All tests in this section should adhere to the naming convention: <testname>.test
+
+ppollEmulationSuccessful.test: $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX)
+	$(PIN) -- $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX) 1 $(OBJDIR)ppollEmulationSuccessful.out \
+	$(OBJDIR)ppollEmulationSuccessfulPipe
+	$(QGREP) "ppoll succeeded" $(OBJDIR)ppollEmulationSuccessful.out
+	$(RM) $(OBJDIR)ppollEmulationSuccessful.out
+
+ppollEmulationSignalInterrupt.test: $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX)
+	$(PIN) -- $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX) 2 $(OBJDIR)ppollEmulationSignalInterrupt.out \
+	$(OBJDIR)ppollEmulationSignalInterruptPipe
+	$(QGREP) "sigalarm interrupted the ppoll system call" $(OBJDIR)ppollEmulationSignalInterrupt.out
+	$(RM) $(OBJDIR)ppollEmulationSignalInterrupt.out
+
+
+ppollEmulationTimeOut.test: $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX)
+	$(PIN) -- $(OBJDIR)ppollEmulation_app$(EXE_SUFFIX) 3 $(OBJDIR)ppollEmulationTimeOut.out \
+	$(OBJDIR)ppollEmulationTimeOutPipe
+	$(QGREP) "The call timed out and no file descriptors were ready" $(OBJDIR)ppollEmulationTimeOut.out
+	$(RM) $(OBJDIR)ppollEmulationTimeOut.out
+
+system_syscall_client_lock.test: $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX)
+	$(PIN) -t $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX) -lock_type 3 \
+	  -- $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) 1
+
+popen_syscall_client_lock.test: $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX)
+	$(PIN) -t $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX) -lock_type 3  \
+	  -- $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) 2
+
+clone_syscall_different_process_client_lock.test: $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX)
+	$(PIN) -t $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX) -lock_type 3 \
+	  -- $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) 3
+
+clone_syscall_same_process_client_lock.test: $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX)
+	$(PIN) -t $(OBJDIR)syscalls_and_locks_tool$(PINTOOL_SUFFIX) -lock_type 3 \
+	  -- $(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX) 4
+
+
+##############################################################
+#
+# Build rules
+#
+##############################################################
+
+# This section contains the build rules for all binaries that have special build rules.
+# See makefile.default.rules for the default build rules.
+
+###### Special applications' build rules ######
+
+$(OBJDIR)syscalls_and_locks_app$(EXE_SUFFIX): syscalls_and_locks_app.cpp
+	$(APP_CXX) $(APP_CXXFLAGS_NOOPT) $(COMP_EXE)$@ $< $(APP_LDFLAGS_NOOPT) $(APP_LIBS) $(CXX_LPATHS) $(CXX_LIBS)
