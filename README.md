@@ -39,7 +39,7 @@ $ python -m pytest -n $(nproc)
 ~~~~
 
 ## Authors
-- Insu Yun <changwoo@gatech.edu>
+- Insu Yun <insu@gatech.edu>
 - Sangho Lee <sangho@gatech.edu>
 - Meng Xu <meng.xu@gatech.edu>
 - Yengjin Jang <yeongjin.jang@oregonstate.edu>
