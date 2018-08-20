@@ -37,14 +37,15 @@ $ docker run --cap-add=SYS_PTRACE -it qsym /bin/bash
 ;   AFL_ROOT: afl directory (http://lcamtuf.coredump.cx/afl/)
 ;   INPUT: input seed files
 ;   OUTPUT: output directory
-;   CMDLINE: command line for a testing program
+;   AFL_CMDLINE: command line for a testing program for AFL (ASAN + instrumented)
+;   QSYM_CMDLINE: command line for a testing program for QSYM (Naive)
 
 ; run AFL master
-$ $(AFL_ROOT)/afl-fuzz -M afl-master -i $(INPUT) -o $(OUTPUT) -- $(CMDLINE)
+$ $(AFL_ROOT)/afl-fuzz -M afl-master -i $(INPUT) -o $(OUTPUT) -- $(AFL_CMDLINE)
 ; run AFL slave
-$ $(AFL_ROOT)/afl-fuzz -S afl-slave -i $(INPUT) -o $(OUTPUT) -- $(CMDLINE)
+$ $(AFL_ROOT)/afl-fuzz -S afl-slave -i $(INPUT) -o $(OUTPUT) -- $(AFL_CMDLINE)
 ; run QSYM
-$ bin/run_qsym_afl.py -a afl-slave -o $(OUTPUT) -n qsym -- $(CMDLINE)
+$ bin/run_qsym_afl.py -a afl-slave -o $(OUTPUT) -n qsym -- $(QSYM_CMDLINE)
 ~~~~
 
 ## Run for testing
