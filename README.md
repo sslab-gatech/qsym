@@ -27,7 +27,7 @@ $ $(AFL_ROOT)/afl-fuzz -M afl-master -i $(INPUT) -o $(OUTPUT) -- $(CMDLINE)
 ; run AFL slave
 $ $(AFL_ROOT)/afl-fuzz -S afl-slave -i $(INPUT) -o $(OUTPUT) -- $(CMDLINE)
 ; run QSYM
-$ bin/run_afl_qsym.py -a afl-slave -o $(OUTPUT) -- $(CMDLINE)
+$ bin/run_qsym_afl.py -a afl-slave -o $(OUTPUT) -- $(CMDLINE)
 ~~~~
 
 ## Run for testing
