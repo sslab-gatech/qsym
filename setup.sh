@@ -15,7 +15,7 @@ make -j$(nproc)
 sudo make install
 popd
 
-echo <<EOM
+cat <<EOM
 Please install qsym by using (or check README.md):
 
   $ virtualenv venv
