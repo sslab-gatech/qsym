@@ -4,6 +4,9 @@
 ## Installation
 
 ~~~~{.sh}
+; disable ptrace_scope for PIN
+$ echo 0|sudo tee /proc/sys/kernel/yama/ptrace_scope
+
 ; install z3 and system deps
 $ ./setup.sh
 
@@ -12,6 +15,20 @@ $ virtualenv venv
 $ source venv/bin/activate
 $ python setup.py install
 ~~~~
+
+## Installation using Docker
+
+~~~~{.sh}
+; disable ptrace_scope for PIN
+$ echo 0|sudo tee /proc/sys/kernel/yama/ptrace_scope
+
+; build docker image
+$ docker build -t qsym ./
+
+$ run docker image
+$ docker run --cap-add=SYS_PTRACE -it qsym /bin/bash
+~~~~
+
 
 ## Run hybrid fuzzing with AFL
 
