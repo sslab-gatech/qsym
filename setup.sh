@@ -33,5 +33,5 @@ Please install qsym by using (or check README.md):
 
   $ virtualenv venv
   $ source venv/bin/activate
-  $ pip setup .
+  $ pip install .
 EOM
