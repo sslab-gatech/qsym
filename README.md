@@ -13,7 +13,7 @@ $ ./setup.sh
 ; install using virtual env
 $ virtualenv venv
 $ source venv/bin/activate
-$ python setup.py install
+$ pip install .
 ~~~~
 
 ## Installation using Docker
