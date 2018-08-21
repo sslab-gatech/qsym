@@ -1198,7 +1198,7 @@ postRecvMmsgHook(SyscallContext *ctx)
 	}
 
 	// timespec structure specified
-	if ((struct timespec *)ctx->arg[SYSCALL_ARG4] != NULL);
+	if ((struct timespec *)ctx->arg[SYSCALL_ARG4] != NULL)
 		g_memory.clearExprFromMem(ctx->arg[SYSCALL_ARG4], sizeof(struct timespec));
 }
 #endif
