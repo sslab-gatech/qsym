@@ -1,3 +1,4 @@
+import logging
 import multiprocessing as mp
 import os
 import subprocess as sp
@@ -10,11 +11,11 @@ import tempfile
 
 from test_utils import *
 
-
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
         testcases = get_testcases(os.path.join(TESTS_DIR, "assembly"))
         metafunc.parametrize('target', testcases)
 
 def test_assembly(target):
+    logging.getLogger('qsym.Executor').setLevel(logging.DEBUG)
     assert run_single_test(target)

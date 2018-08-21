@@ -1,3 +1,4 @@
+import logging
 import multiprocessing as mp
 import os
 import subprocess as sp
@@ -16,6 +17,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize('target', testcases)
 
 def test_functions(target):
+    logging.getLogger('qsym.Executor').setLevel(logging.DEBUG)
     # if cpu does not support avx2, then return
     if not 'avx2' in open("/proc/cpuinfo").read():
         return

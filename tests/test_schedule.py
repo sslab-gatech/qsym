@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import logging
 import os
 import shutil
 import tempfile
@@ -6,6 +7,7 @@ import tempfile
 from test_utils import TESTS_DIR, qsym, check_testcase
 
 SCHEDULE_DIR = os.path.join(TESTS_DIR, "schedule")
+logging.getLogger('qsym.Executor').setLevel(logging.DEBUG)
 
 def get_testcases(exe, bitmap, input_binary):
     output_dir = tempfile.mkdtemp(prefix="qsym-")

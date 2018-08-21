@@ -89,10 +89,9 @@ class Executor(object):
         cmd = self.gen_cmd(timeout)
         start_time = time.time()
 
-        l.debug("Execute %s" % ' '.join(cmd))
+        l.debug("Executing %s" % ' '.join(cmd))
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        l.debug("Executing %s" % " ".join(cmd))
         stdout, stderr = proc.communicate(self.stdin)
         end_time = time.time()
         return ExecutorResult(
