@@ -1,5 +1,5 @@
 ## Environment
-- Tested on Ubuntun 14.04 and 16.04
+- Tested on Ubuntu 14.04 and 16.04
 
 ## Installation
 
@@ -60,7 +60,7 @@ $ python -m pytest -n $(nproc)
 - Insu Yun <insu@gatech.edu>
 - Sangho Lee <sangho@gatech.edu>
 - Meng Xu <meng.xu@gatech.edu>
-- Yengjin Jang <yeongjin.jang@oregonstate.edu>
+- Yeongjin Jang <yeongjin.jang@oregonstate.edu>
 - Taesoo Kim <taesoo@gatech.edu>
 
 ## Publications
@@ -68,7 +68,7 @@ $ python -m pytest -n $(nproc)
 QSYM: A Practical Concolic Execution Engine Tailored for Hybrid Fuzzing
 
 @inproceedings{yun:qsym,
-  title        = {{QSYM: A Practical Concolic Execution Engine Tailored for Hybrid Fuzzing (to appear)}},
+  title        = {{QSYM: A Practical Concolic Execution Engine Tailored for Hybrid Fuzzing}},
   author       = {Insu Yun and Sangho Lee and Meng Xu and Yeongjin Jang and Taesoo Kim},
   booktitle    = {Proceedings of the 27th USENIX Security Symposium (Security)},
   month        = aug,
