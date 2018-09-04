@@ -10,8 +10,8 @@ from conf import PIN, SO
 import utils
 
 l = logging.getLogger('qsym.Executor')
-MS_TO_S = float(1000 ** 2)
-LOG_SMT_HEADER = " SMT:"
+US_TO_S = float(1000 ** 2)
+LOG_SMT_HEADER = "[STAT] SMT:"
 
 class ExecutorResult(object):
     def __init__(self, start_time, end_time, returncode, log):
@@ -37,7 +37,7 @@ class ExecutorResult(object):
                     self.solving_time = (end_time * 10 ** 6) - obj['start_time']
                 self.solving_time += obj['solving_time']
                 break
-        self.solving_time /= MS_TO_S
+        self.solving_time /= US_TO_S
         # This could be happened due to incorrect measurement
         self.solving_time = min(self.solving_time, self.total_time)
 
