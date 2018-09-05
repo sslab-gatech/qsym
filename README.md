@@ -1,5 +1,5 @@
 ## Environment
-- Tested on Ubuntu 14.04 and 16.04
+- Tested on Ubuntu 14.04 64bit and 16.04 64bit
 
 ## Installation
 
