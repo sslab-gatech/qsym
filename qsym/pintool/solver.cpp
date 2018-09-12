@@ -437,6 +437,8 @@ void Solver::addConstraint(ExprRef e) {
     QSYM_ASSERT(castAs<BoolExpr>(e)->value());
     return;
   }
+  if (e->isConcrete())
+    return;
   dep_forest_.addNode(e);
 }
 
