@@ -20,7 +20,7 @@ namespace qsym {
   {}
 
   CallStackManager::~CallStackManager() {
-    delete bitmap_;
+    delete [] bitmap_;
   }
 
   void CallStackManager::visitCall(ADDRINT pc) {
