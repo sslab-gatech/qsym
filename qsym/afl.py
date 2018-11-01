@@ -126,9 +126,9 @@ class AFLExecutor(object):
         self.set_asan_cmd(asan_bin)
 
         self.tmp_dir = tempfile.mkdtemp()
-        cmd, afl_path = self.parse_fuzzer_stats()
+        cmd, afl_path, qemu_mode = self.parse_fuzzer_stats()
         self.minimizer = minimizer.TestcaseMinimizer(
-            cmd, afl_path, self.output)
+            cmd, afl_path, self.output, qemu_mode)
         self.import_state()
         self.make_dirs()
         atexit.register(self.cleanup)
@@ -196,7 +196,7 @@ class AFLExecutor(object):
         cmd = get_afl_cmd(os.path.join(self.afl_dir, "fuzzer_stats"))
         assert cmd is not None
         index = cmd.index("--")
-        return cmd[index+1:], os.path.dirname(cmd[0])
+        return cmd[index+1:], os.path.dirname(cmd[0]), '-Q' in cmd
 
     def import_state(self):
         if os.path.exists(self.metadata):

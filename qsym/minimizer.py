@@ -23,8 +23,9 @@ def write_bitmap_file(bitmap_file, bitmap):
         f.write(''.join(map(chr, bitmap)))
 
 class TestcaseMinimizer(object):
-    def __init__(self, cmd, afl_path, out_dir, map_size=MAP_SIZE):
+    def __init__(self, cmd, afl_path, out_dir, qemu_mode, map_size=MAP_SIZE):
         self.cmd = cmd
+        self.qemu_mode = qemu_mode
         self.showmap = os.path.join(afl_path, "afl-showmap")
         self.bitmap_file = os.path.join(out_dir, "afl-bitmap")
         self.crash_bitmap_file = os.path.join(out_dir, "afl-crash-bitmap")
@@ -47,10 +48,16 @@ class TestcaseMinimizer(object):
                "-t",
                str(TIMEOUT),
                "-m", "256T", # for ffmpeg
-               "-b", # binary mode
-               "-o",
+               "-b" # binary mode
+        ]
+
+        if self.qemu_mode:
+            cmd += ['-Q']
+
+        cmd += ["-o",
                self.temp_file,
-               "--"] + self.cmd
+               "--"
+        ] + self.cmd
 
         cmd, stdin = utils.fix_at_file(cmd, testcase)
         with open(os.devnull, "wb") as devnull:
