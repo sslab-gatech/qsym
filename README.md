@@ -38,7 +38,7 @@ $ docker run --cap-add=SYS_PTRACE -it qsym /bin/bash
 #   INPUT: input seed files
 #   OUTPUT: output directory
 #   AFL_CMDLINE: command line for a testing program for AFL (ASAN + instrumented)
-#   QSYM_CMDLINE: command line for a testing program for QSYM (Naive)
+#   QSYM_CMDLINE: command line for a testing program for QSYM (Non-instrumented)
 
 # run AFL master
 $ $(AFL_ROOT)/afl-fuzz -M afl-master -i $(INPUT) -o $(OUTPUT) -- $(AFL_CMDLINE)
