@@ -16,7 +16,10 @@ from distutils.command.build import build as DistutilsBuild
 def build_pintool():
     if subprocess.call(["make", "-C", "qsym/pintool", "-j", str(mp.cpu_count())]) != 0:
         raise ValueError("Unable to build pintool")
-
+    my_env = os.environ.copy()
+    my_env["TARGET"] = "ia32"
+    if subprocess.call(["make", "-C", "qsym/pintool", "-j", str(mp.cpu_count())],env=my_env) != 0:
+        raise ValueError("Unable to build pintool")
     if int(open("/proc/sys/kernel/yama/ptrace_scope").read()) != 0:
         raise ValueError("Please disable yama/ptrace_scope:\n" \
                        + "echo 0 > /proc/sys/kernel/yama/ptrace_scope")
@@ -42,7 +45,7 @@ setup(name='qsym',
       packages=packages,
       include_package_data=True,
       package_data
-        = {"qsym": ["pintool/obj-intel64/libqsym.so"]},
+        = {"qsym": ["pintool/obj-intel64/libqsym.so","pintool/obj-ia32/libqsym.so"]},
       install_requires=[
           'termcolor',          # for qsym/utils.py
           'pyinotify',          # for qsym/afl.py (XXX. doesn't seem to be using?)

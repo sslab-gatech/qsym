@@ -65,6 +65,14 @@ class Executor(object):
     def log_file(self):
         return os.path.join(self.testcase_dir, "pin.log")
 
+    def check_elf32(self):
+        # assume cmd[0] is always the target binary (?)
+        if os.path.exists(self.cmd[0]):
+            with open(self.cmd[0]) as f:
+               d = f.read(5)
+               return len(d) > 4 and d[4] == chr(01)
+        return false
+
     def gen_cmd(self, timeout):
         cmd = []
         if timeout:
@@ -74,7 +82,9 @@ class Executor(object):
         # Hack for 16.04
         cmd += ["-ifeellucky"]
 
-        cmd += ["-t", SO]
+        # Check if target is 32bit ELF
+        if self.check_elf32(): cmd += ["-t", SO["ia32"]]
+        else: cmd += ["-t", SO["intel64"]]
         # Add log file
         cmd += ["-logfile", self.log_file]
         cmd += ["-i", self.input_file] + self.source_opts

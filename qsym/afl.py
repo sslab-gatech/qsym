@@ -52,13 +52,14 @@ def mkdir(dirp):
         os.makedirs(dirp)
 
 def check_so_file():
-    if not os.path.exists(SO):
-        # Maybe updating now.. please wait
-        logger.debug("Cannot find pintool. Maybe updating?")
-        time.sleep(3 * 60)
+    for SO_file in SO.values():
+        if not os.path.exists(SO_file):
+            # Maybe updating now.. please wait
+            logger.debug("Cannot find pintool. Maybe updating?")
+            time.sleep(3 * 60)
 
-    if not os.path.exists(SO):
-        FATAL("Cannot find SO file!")
+        if not os.path.exists(SO_file):
+            FATAL("Cannot find SO file!")
 
 def get_afl_cmd(fuzzer_stats):
     with open(fuzzer_stats) as f:
