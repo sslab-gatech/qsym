@@ -18,6 +18,8 @@ def find_pin():
 
 ROOT = os.path.realpath(os.path.dirname(__file__))
 PINTOOL_DIR = os.path.join(ROOT, "pintool")
-SO = {"intel64": os.path.join(PINTOOL_DIR, "obj-intel64/libqsym.so")}
-SO["ia32"] = os.path.join(PINTOOL_DIR, "obj-ia32/libqsym.so")
+SO = {
+    "intel64": os.path.join(PINTOOL_DIR, "obj-intel64/libqsym.so"),
+    "ia32": os.path.join(PINTOOL_DIR, "obj-ia32/libqsym.so")
+}
 PIN = find_pin()
