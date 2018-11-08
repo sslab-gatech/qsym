@@ -83,8 +83,11 @@ class Executor(object):
         cmd += ["-ifeellucky"]
 
         # Check if target is 32bit ELF
-        if self.check_elf32(): cmd += ["-t", SO["ia32"]]
-        else: cmd += ["-t", SO["intel64"]]
+        if self.check_elf32():
+            cmd += ["-t", SO["ia32"]]
+        else:
+            cmd += ["-t", SO["intel64"]]
+            
         # Add log file
         cmd += ["-logfile", self.log_file]
         cmd += ["-i", self.input_file] + self.source_opts
