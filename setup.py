@@ -18,7 +18,7 @@ def build_pintool():
         raise ValueError("Unable to build pintool")
     my_env = os.environ.copy()
     my_env["TARGET"] = "ia32"
-    if subprocess.call(["make", "-C", "qsym/pintool", "-j", str(mp.cpu_count())],env=my_env) != 0:
+    if subprocess.call(["make", "-C", "qsym/pintool", "-j", str(mp.cpu_count())], env=my_env) != 0:
         raise ValueError("Unable to build pintool")
     if int(open("/proc/sys/kernel/yama/ptrace_scope").read()) != 0:
         raise ValueError("Please disable yama/ptrace_scope:\n" \
