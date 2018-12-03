@@ -71,7 +71,7 @@ class Executor(object):
             with open(self.cmd[0]) as f:
                d = f.read(5)
                return len(d) > 4 and d[4] == chr(01)
-        return false
+        return False
 
     def gen_cmd(self, timeout):
         cmd = []
@@ -87,7 +87,7 @@ class Executor(object):
             cmd += ["-t", SO["ia32"]]
         else:
             cmd += ["-t", SO["intel64"]]
-            
+
         # Add log file
         cmd += ["-logfile", self.log_file]
         cmd += ["-i", self.input_file] + self.source_opts
