@@ -65,6 +65,10 @@ class Executor(object):
     def log_file(self):
         return os.path.join(self.testcase_dir, "pin.log")
 
+    @property
+    def testcase_directory(self):
+        return self.testcase_dir
+        
     def check_elf32(self):
         # assume cmd[0] is always the target binary (?)
         if os.path.exists(self.cmd[0]):
