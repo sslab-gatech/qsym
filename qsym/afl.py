@@ -387,6 +387,12 @@ class AFLExecutor(object):
         if os.path.exists(q.log_file):
             os.unlink(q.log_file)
 
+        # Remove testcase_dir if it`s empty
+        try:
+            os.rmdir(q.testcase_directory)
+        except Exception:
+            pass
+
         logger.debug("Generate %d testcases" % num_testcase)
         logger.debug("%d testcases are new" % (self.state.index - old_idx))
 
