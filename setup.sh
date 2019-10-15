@@ -17,6 +17,7 @@ sudo apt-get install -y libc6 libstdc++6 linux-libc-dev gcc-multilib \
 
 # install z3
 pushd third_party/z3
+rm -rf build
 ./configure
 pushd build
 make -j$(nproc)
