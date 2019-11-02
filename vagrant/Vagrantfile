@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/xenial64"
+
+  config.vm.provision "file", source: "example.c", destination: "example.c"
+  config.vm.provision "file", source: "README.md", destination: "README.md"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo apt-get update
+    sudo apt install -y python
+
+    # install pip
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    sudo python get-pip.py
+
+    # install qsym
+    echo 0|sudo tee /proc/sys/kernel/yama/ptrace_scope
+    git clone https://github.com/sslab-gatech/qsym
+
+    pushd qsym
+    ./setup.sh
+    sudo pip install .
+    popd
+
+    # install afl
+    wget http://lcamtuf.coredump.cx/afl/releases/afl-2.52b.tgz
+    tar -zxvf afl-2.52b.tgz
+    pushd afl-2.52b
+    make
+    popd
+
+    # make it for vagrant
+    chown -R vagrant:vagrant .
+  SHELL
+end
