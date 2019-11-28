@@ -33,17 +33,20 @@ int main(int argc, char** argv) {
     printf("Step 1 passed\n");
 
     // Challenge for symbolic execution
-    for (int i = 0; i < sizeof(buf); i++) {
+    int count = 0;
+    for (int i = 0; i < 32; i++) {
       if (buf[i] <= 'a')
-        exit(-1);
+        count++;
     }
-    printf("Step 2 passed\n");
 
-    // Challenge for fuzzing, again
-    if ((x ^ y) == 0xbadf00d) {
-      printf("Step 3 passed\n");
-      ((void(*)())0)();
+    if (count == 32) {
+      printf("Step 2 passed\n");
+
+      // Challenge for fuzzing, again
+      if ((x ^ y) == 0xbadf00d) {
+        printf("Step 3 passed\n");
+        ((void(*)())0)();
+      }
     }
   }
 }
-
