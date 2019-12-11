@@ -1,0 +1,21 @@
+--- lava_corpus-orig/LAVA-M/who/coreutils-8.24-lava-safe/src/who.c      2016-05-27 18:39:45.000000000 +0000
++++ lava_corpus/LAVA-M/who/coreutils-8.24-lava-safe/src/who.c   2019-12-03 17:14:05.538059336 +0000
+@@ -5,17 +5,15 @@
+ void lava_set(unsigned int bug_num, unsigned int val) { lava_val[bug_num] = val; }
+ unsigned int lava_get(unsigned int bug_num);
+ unsigned int lava_get(unsigned int bug_num) {
+-#if 0
+ #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
+     if (0x6c617661 - bug_num == lava_val[bug_num] ||
+         SWAP_UINT32(0x6c617661 - bug_num) == lava_val[bug_num]) {
+         printf("Successfully triggered bug %d, crashing now!\n", bug_num);
+-        exit(0);
++       fflush(0);
+     }
+     else {
+         //printf("Not successful for bug %d; val = %08x not %08x or %08x\n", bug_num, lava_val[bug_num], 0x6c617661 + bug_num, 0x6176616c + bug_num);
+     }
+-#endif
+     return lava_val[bug_num];
+ }
+ /* GNU's who.

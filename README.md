@@ -29,6 +29,12 @@ $ docker build -t qsym ./
 $ docker run --cap-add=SYS_PTRACE -it qsym /bin/bash
 ~~~~
 
+## Installation using vagrant
+
+Since QSYM is dependent on underlying kernel because of its old PIN, we decided
+to provide a convenient way to install QSYM with VM. Please take a look
+our [vagrant](vagrant) directory.
+
 
 ## Run hybrid fuzzing with AFL
 

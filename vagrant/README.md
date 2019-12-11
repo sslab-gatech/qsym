@@ -15,10 +15,10 @@ $ vagrant ssh
 How to run the example
 ----------------------
 ```sh
-# set up kernel configurations
-$ echo 0|sudo tee /proc/sys/kernel/yama/ptrace_scope
-$ echo core|sudo tee /proc/sys/kernel/core_pattern
+# load system configuration
+$ sudo sysctl --system
 
+# set up kernel configurations
 $ gcc -o example example.c
 $ mkdir input
 $ python -c'print"A"*4096' > input/seed
@@ -44,4 +44,26 @@ $ ./afl-2.52b/afl-fuzz -S afl-slave -i input -o output -- ./example-afl @@
 $ ./qsym/bin/run_qsym_afl.py -a afl-slave -o output -n qsym -- ./example @@
 
 # will find a crash in minutes
+```
+
+How to run LAVA-M
+-----------------
+Our VM image has pre-compiled LAVA-M applications. It is worth noting that we
+used 64-bit LAVA-M applications. In 64-bit, LAVA-M's testcases fail to validate
+all bugs in `uniq`, but only 20 out of 28. This is consistent with
+[others](https://www.jianshu.com/p/31a048ccb2ad) (We used Google translation to
+read this article).
+
+```sh
+# load system configuration
+$ sudo sysctl --system
+
+$ cd LAVA
+$ ./install-lava.sh
+
+# run experiements
+$ ./run-lava.py run [app]
+
+# collect results
+$ ./run-lava.py collect [app]
 ```
