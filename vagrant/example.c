@@ -35,11 +35,11 @@ int main(int argc, char** argv) {
     // Challenge for symbolic execution
     int count = 0;
     for (int i = 0; i < 32; i++) {
-      if (buf[i] <= 'a')
+      if (buf[i] >= 'a')
         count++;
     }
 
-    if (count == 32) {
+    if (count >= 8) {
       printf("Step 2 passed\n");
 
       // Challenge for fuzzing, again
