@@ -18,7 +18,7 @@ How to run the example
 # load system configuration
 $ sudo sysctl --system
 
-# set up kernel configurations
+# compile the example
 $ gcc -o example example.c
 $ mkdir input
 $ python -c'print"A"*4096' > input/seed
