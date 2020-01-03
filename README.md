@@ -47,11 +47,11 @@ our [vagrant](vagrant) directory.
 #   QSYM_CMDLINE: command line for a testing program for QSYM (Non-instrumented)
 
 # run AFL master
-$ $(AFL_ROOT)/afl-fuzz -M afl-master -i $(INPUT) -o $(OUTPUT) -- $(AFL_CMDLINE)
+$ $AFL_ROOT/afl-fuzz -M afl-master -i $INPUT -o $OUTPUT -- $AFL_CMDLINE
 # run AFL slave
-$ $(AFL_ROOT)/afl-fuzz -S afl-slave -i $(INPUT) -o $(OUTPUT) -- $(AFL_CMDLINE)
+$ $AFL_ROOT/afl-fuzz -S afl-slave -i $INPUT -o $OUTPUT -- $AFL_CMDLINE
 # run QSYM
-$ bin/run_qsym_afl.py -a afl-slave -o $(OUTPUT) -n qsym -- $(QSYM_CMDLINE)
+$ bin/run_qsym_afl.py -a afl-slave -o $OUTPUT -n qsym -- $QSYM_CMDLINE
 ~~~~
 
 ## Run for testing
