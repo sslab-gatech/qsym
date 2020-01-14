@@ -6,7 +6,7 @@ namespace qsym {
 #ifdef  HUGE_TLB
   const ADDRINT kMapFlags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
 #else
-  const ADDRINT kMapFlags = MAP_PRIVATE | MAP_ANONYMOUS;
+  const ADDRINT kMapFlags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
 #endif
 
 void deallocPages(void* addr, size_t length) {
@@ -17,7 +17,7 @@ void deallocPages(void* addr, size_t length) {
 void* allocPages(size_t length, int prot) {
   void* ptr = mmap(NULL, length, prot, kMapFlags, -1, 0);
   if (ptr == MAP_FAILED) {
-    LOG_FATAL("out of memory");
+    LOG_FATAL("out of memory (allocPages)");
     return NULL;
   }
   else
@@ -31,7 +31,7 @@ void* allocRWPages(size_t length) {
 void* safeRealloc(void* addr, size_t size) {
   void* ptr = realloc(addr, size);
   if (ptr == NULL) {
-    LOG_FATAL("out of memory");
+    LOG_FATAL("out of memory (safeRealloc)");
     return NULL;
   }
   else
@@ -41,14 +41,14 @@ void* safeRealloc(void* addr, size_t size) {
 void* safeMalloc(size_t size) {
   void* ptr = malloc(size);
   if (ptr == NULL)
-    LOG_FATAL("out of memory");
+    LOG_FATAL("out of memory (safeMalloc)");
   return ptr;
 }
 
 void* safeCalloc(size_t nmemb, size_t size) {
   void* ptr = calloc(nmemb, size);
   if (ptr == NULL)
-    LOG_FATAL("out of memory");
+    LOG_FATAL("out of memory (safeCalloc)");
   return ptr;
 }
 
