@@ -64,6 +64,10 @@ $ python build.py
 $ python -m pytest -n $(nproc)
 ~~~~
 
+## Troubleshooting
+If you find that you can't get QSym to work and you get the "undefined symbol: Z3_is_seq_sort" error in pin.log file, please make sure that you compile and make the target when you're in the virtualenv (env) environment, when you're out of this environment and you compile the target, QSym can't work with the target binary and issue the mentioned error in pin.log file. This will save your time alot to compile and make the target from env and then run QSym on the target, then QSym will work like a charm!
+
+
 ## Authors
 - Insu Yun <insu@gatech.edu>
 - Sangho Lee <sangho@gatech.edu>
