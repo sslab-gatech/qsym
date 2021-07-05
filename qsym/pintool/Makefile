@@ -22,7 +22,7 @@ endif
 include $(CONFIG_ROOT)/makefile.config
 include makefile.rules
 include $(TOOLS_ROOT)/Config/makefile.default.rules
-TOOL_CXXFLAGS += -I$(ROOT)/third_party/z3/include
+TOOL_CXXFLAGS += -I/usr/local/qsym/include
 
 ##############################################################
 #

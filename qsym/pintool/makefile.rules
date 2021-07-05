@@ -66,6 +66,10 @@ endif
 
 TOOL_CXXFLAGS += -I$(CURDIR)
 TOOL_CXXFLAGS += -g -Wno-error=unused-function -std=c++11 -DCONFIG_CONTEXT_SENSITIVE
+
+TOOL_LPATHS += -Wl,-rpath=/usr/local/qsym/lib -L/usr/local/qsym/lib
+TOOL_LPATHS += -Wl,-rpath=/usr/local/qsym32/lib -L/usr/local/qsym32/lib
+
 TOOL_LIBS += -lz3
 
 ##############################################################
