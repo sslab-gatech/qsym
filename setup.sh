@@ -17,7 +17,7 @@ sudo apt-get install -y libc6 libstdc++6 linux-libc-dev gcc-multilib \
 
 # install pip
 sudo apt-get install wget
-wget https://bootstrap.pypa.io/get-pip.py
+wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
 python get-pip.py
 rm -rf ./get-pip.py
 
