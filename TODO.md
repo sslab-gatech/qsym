@@ -1,3 +1,0 @@
-- Clean up code
-- Support both 32bit / 64bit
-- Add function wrapper: strcmp, strncmp, strstr, memcmp
