@@ -1,9 +1,0 @@
-Base {
-    global:
-        main;
-        ClientIntC;
-        CharmVersionC;
-
-    local:
-        *;
-};
