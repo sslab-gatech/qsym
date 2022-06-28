@@ -498,8 +498,9 @@ static void
 postBrkHook(SyscallContext *ctx)
 {
 	// brk() return value; in Linux brk returns
-	// 0 on success, -1 otherwise
-	ADDRINT addr = ctx->arg[SYSCALL_ARG0];
+	// the address of the new program break, or
+	// the current value in case of failure
+	ADDRINT addr = ctx->ret;
 
   if (unlikely(addr == g_memory.brk_end()))
     return;
