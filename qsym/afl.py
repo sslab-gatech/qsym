@@ -209,6 +209,9 @@ class AFLExecutor(object):
     def sync_files(self):
         files = []
         for name in os.listdir(self.afl_queue):
+            # https://askubuntu.com/questions/493198/what-is-a-fuse-hidden-file-and-why-do-they-exist
+            if name.startswith(".fuse_hidden"):
+                continue
             path = os.path.join(self.afl_queue, name)
             if os.path.isfile(path):
                 files.append(path)
