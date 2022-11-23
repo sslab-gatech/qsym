@@ -3,7 +3,7 @@ Using QSYM with vagrant
 
 Pulling from Vagrant Cloud
 --------------------------
-* Follow directions in https://app.vagrantup.com/jakkdu/boxes/qsym 
+* Follow directions in https://app.vagrantup.com/insuyun/boxes/qsym
 
 Building locally
 ----------------
